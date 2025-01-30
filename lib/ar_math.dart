@@ -1,9 +1,7 @@
 import 'dart:math';
 
-import 'package:ar_location_view/ar_extension.dart';
+import 'package:arcore_geospatial_view/ar_extension.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:native_device_orientation/native_device_orientation.dart';
-import 'package:vector_math/vector_math_64.dart';
 
 class ArMath {
   ///Normalizes degree to 0-360
@@ -105,27 +103,5 @@ class ArMath {
     bearing += 180.0;
 
     return bearing;
-  }
-
-  static double calculatePitch({
-    required Vector3 gravity,
-    required NativeDeviceOrientation orientation,
-  }) {
-    double pitch = 0;
-    if (orientation == NativeDeviceOrientation.portraitDown) {
-      pitch = atan2(-gravity.y, gravity.z);
-    } else if (orientation == NativeDeviceOrientation.landscapeLeft) {
-      pitch = atan2(gravity.x, gravity.z);
-    } else if (orientation == NativeDeviceOrientation.landscapeRight) {
-      pitch = atan2(-gravity.x, gravity.z);
-    } else {
-      pitch = atan2(gravity.y, gravity.z);
-    }
-    pitch = pitch.toDegrees;
-    pitch += 90;
-    if (pitch > 180) {
-      pitch -= 360;
-    }
-    return pitch;
   }
 }

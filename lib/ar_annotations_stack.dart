@@ -1,20 +1,23 @@
+import 'dart:async';
 import 'dart:math';
+import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
+import 'package:arcore_geospatial_view/ar_camera_pose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
-import 'ar_location_view.dart';
+import 'arcore_geospatial_view.dart';
 
 /// Signature for a function that creates a widget for a given annotation,
 typedef AnnotationViewBuilder = Widget Function(
     BuildContext context, ArAnnotation annotation);
 
-typedef ChangeLocationCallback = void Function(Position position);
+typedef ChangeLocationCallback = void Function(ArCameraPose position);
 
-class ArView extends StatefulWidget {
-  const ArView({
-    Key? key,
+class ArAnnotationsStack extends StatefulWidget {
+  const ArAnnotationsStack({
+    super.key,
     required this.annotations,
     required this.annotationViewBuilder,
     required this.frame,
@@ -22,11 +25,12 @@ class ArView extends StatefulWidget {
     this.annotationWidth = 200,
     this.annotationHeight = 75,
     this.maxVisibleDistance = 1500,
-    this.showDebugInfoSensor = true,
+    this.showDebugInfo = true,
     this.paddingOverlap = 5,
     this.yOffsetOverlap,
     required this.minDistanceReload,
-  }) : super(key: key);
+    required this.arCoreController,
+  });
 
   final List<ArAnnotation> annotations;
   final AnnotationViewBuilder annotationViewBuilder;
@@ -39,86 +43,114 @@ class ArView extends StatefulWidget {
 
   final ChangeLocationCallback onLocationChange;
 
-  final bool showDebugInfoSensor;
+  final bool showDebugInfo;
 
   final double paddingOverlap;
   final double? yOffsetOverlap;
   final double minDistanceReload;
+  final ArCoreController? arCoreController;
 
   @override
-  State<ArView> createState() => _ArViewState();
+  State<ArAnnotationsStack> createState() => _ArAnnotationsStackState();
 }
 
-class _ArViewState extends State<ArView> {
+class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
   ArStatus arStatus = ArStatus();
-
-  Position? position;
+  ArCameraPose? arCameraPose;
+  List<double> pitchHistory = [];
+  final NativeDeviceOrientationCommunicator _deviceOrientationCommunicator =
+      NativeDeviceOrientationCommunicator();
+  Stream<NativeDeviceOrientation>? _orientationStream;
+  StreamSubscription<NativeDeviceOrientation>? _orientationStreamSubscription;
+  NativeDeviceOrientation _orientation = NativeDeviceOrientation.portraitUp;
 
   @override
   void initState() {
-    ArSensorManager.instance.init();
     super.initState();
+    _orientationStream =
+        _deviceOrientationCommunicator.onOrientationChanged(useSensor: true);
+    _orientationStreamSubscription = _orientationStream?.listen((event) {
+      _orientation = event;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.arCoreController?.onCameraGeospatialPoseDetected =
+          (arcoreGeospatialPose) {
+        final newArCameraPose =
+            ArCameraPose.fromArcoreGeospatialPose(arcoreGeospatialPose);
+
+        if (arCameraPose == null) {
+          widget.onLocationChange(newArCameraPose);
+          arCameraPose = newArCameraPose;
+        } else {
+          final distance = Geolocator.distanceBetween(
+            arCameraPose!.latitude,
+            arCameraPose!.longitude,
+            newArCameraPose.latitude,
+            newArCameraPose.longitude,
+          );
+
+          // Update latitude and longitude if they significantly changed
+          if (distance >= widget.minDistanceReload) {
+            // Trigger location change callback if position changed significantly
+            widget.onLocationChange(newArCameraPose);
+          }
+        }
+
+        setState(() {
+          // This triggers a UI update with the updated camera pose
+          arCameraPose = newArCameraPose;
+        });
+      };
+    });
   }
 
   @override
   void dispose() {
-    ArSensorManager.instance.dispose();
+    _orientationStreamSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
-    return StreamBuilder(
-      stream: ArSensorManager.instance.arSensor,
-      builder: (context, data) {
-        if (data.hasData) {
-          if (data.data != null) {
-            final arSensor = data.data!;
-            if (arSensor.location == null) {
-              return loading();
-            }
-            _calculateFOV(arSensor.orientation, width, height);
-            _updatePosition(arSensor.location!);
-            final deviceLocation = arSensor.location!;
-            final annotations = _filterAndSortArAnnotation(
-                widget.annotations, arSensor, deviceLocation);
-            _transformAnnotation(annotations);
-            return Stack(
-              children: [
-                if (kDebugMode && widget.showDebugInfoSensor)
-                  Positioned(
-                    bottom: 0,
-                    child: debugInfo(context, arSensor),
+    final width = MediaQuery.sizeOf(context).width;
+    final height = MediaQuery.sizeOf(context).height;
+    if (arCameraPose != null) {
+      _calculateFOV(_orientation, width, height);
+
+      final annotations =
+          _filterAndSortArAnnotation(widget.annotations, arCameraPose!);
+      _transformAnnotation(annotations);
+      return Stack(
+        children: [
+          if (kDebugMode && widget.showDebugInfo)
+            Positioned(
+              bottom: 0,
+              child: debugInfo(context, arCameraPose),
+            ),
+          Stack(
+              children: annotations.map(
+            (e) {
+              return Positioned(
+                left: e.arPosition.dx,
+                top: e.arPosition.dy + height * 0.5,
+                child: Transform.translate(
+                  offset: Offset(0, e.arPositionOffset.dy),
+                  child: SizedBox(
+                    width: widget.annotationWidth,
+                    child: widget.annotationViewBuilder(context, e),
                   ),
-                Stack(
-                    children: annotations.map(
-                  (e) {
-                    return Positioned(
-                      left: e.arPosition.dx,
-                      top: e.arPosition.dy + height * 0.5,
-                      child: Transform.translate(
-                        offset: Offset(0, e.arPositionOffset.dy),
-                        child: SizedBox(
-                          width: widget.annotationWidth,
-                          height: widget.annotationHeight,
-                          child: widget.annotationViewBuilder(context, e),
-                        ),
-                      ),
-                    );
-                  },
-                ).toList()),
-              ],
-            );
-          }
-        }
-        return loading();
-      },
-    );
+                ),
+              );
+            },
+          ).toList()),
+        ],
+      );
+    } else {
+      return loading();
+    }
   }
 
-  Widget debugInfo(BuildContext context, ArSensor? arSensor) {
+  Widget debugInfo(BuildContext context, ArCameraPose? arCameraPose) {
     return Container(
       color: Colors.white,
       width: MediaQuery.of(context).size.width,
@@ -128,10 +160,12 @@ class _ArViewState extends State<ArView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Latitude  : ${arSensor?.location?.latitude}'),
-            Text('Longitude : ${arSensor?.location?.longitude}'),
-            Text('Pitch     : ${arSensor?.pitch}'),
-            Text('Heading   : ${arSensor?.heading}'),
+            Text('Latitude          : ${arCameraPose?.latitude}'),
+            Text('Longitude         : ${arCameraPose?.longitude}'),
+            Text('heading           : ${arCameraPose?.heading}'),
+            Text('pitch             : ${arCameraPose?.pitch}'),
+            Text('roll              : ${arCameraPose?.roll}'),
+            Text('Device orientation: $_orientation')
           ],
         ),
       ),
@@ -145,7 +179,7 @@ class _ArViewState extends State<ArView> {
   }
 
   void _calculateFOV(
-      NativeDeviceOrientation orientation, double width, double height) {
+      NativeDeviceOrientation? orientation, double width, double height) {
     double hFov = 0;
     double vFov = 0;
     const tempFOv = 58.0;
@@ -176,39 +210,37 @@ class _ArViewState extends State<ArView> {
   }
 
   List<ArAnnotation> _calculateDistanceAndBearingFromUser(
-      List<ArAnnotation> annotations,
-      Position deviceLocation,
-      ArSensor arSensor) {
+      List<ArAnnotation> annotations, ArCameraPose arCameraPose) {
     return annotations.map((e) {
       final annotationLocation = e.position;
       e.azimuth = Geolocator.bearingBetween(
-        deviceLocation.latitude,
-        deviceLocation.longitude,
+        arCameraPose.latitude,
+        arCameraPose.longitude,
         annotationLocation.latitude,
         annotationLocation.longitude,
       );
       e.distanceFromUser = Geolocator.distanceBetween(
-          deviceLocation.latitude,
-          deviceLocation.longitude,
+          arCameraPose.latitude,
+          arCameraPose.longitude,
           annotationLocation.latitude,
           annotationLocation.longitude);
-      final dy = arSensor.pitch * arStatus.vPixelPerDegree;
-      final dx = ArMath.deltaAngle(e.azimuth, arSensor.heading) *
+      final dy = arCameraPose.pitch * arStatus.vPixelPerDegree;
+      final dx = ArMath.deltaAngle(e.azimuth, arCameraPose.heading) *
           arStatus.hPixelPerDegree;
       e.arPosition = Offset(dx, dy);
       return e;
     }).toList();
   }
 
-  List<ArAnnotation> _filterAndSortArAnnotation(List<ArAnnotation> annotations,
-      ArSensor arSensor, Position deviceLocation) {
-    List<ArAnnotation> temps = _calculateDistanceAndBearingFromUser(
-        annotations, deviceLocation, arSensor);
+  List<ArAnnotation> _filterAndSortArAnnotation(
+      List<ArAnnotation> annotations, ArCameraPose arCameraPose) {
+    List<ArAnnotation> temps =
+        _calculateDistanceAndBearingFromUser(annotations, arCameraPose);
     temps = annotations
         .where(
             (element) => element.distanceFromUser < widget.maxVisibleDistance)
         .toList();
-    temps = _visibleAnnotations(temps, arSensor.heading);
+    temps = _visibleAnnotations(temps, arCameraPose.heading);
     return temps;
   }
 
@@ -244,20 +276,5 @@ class _ArViewState extends State<ArView> {
             annotation2.arPosition.dx <= (annotation1.arPosition.dx + width)) ||
         (annotation1.arPosition.dx >= annotation2.arPosition.dx &&
             annotation1.arPosition.dx <= (annotation2.arPosition.dx + width));
-  }
-
-  void _updatePosition(Position newPosition) {
-    if (position == null) {
-      widget.onLocationChange(newPosition);
-      position = newPosition;
-    } else {
-      final distance = Geolocator.distanceBetween(position!.latitude,
-          position!.longitude, newPosition.latitude, newPosition.longitude);
-      if (distance > widget.minDistanceReload) {
-        widget.onLocationChange(newPosition);
-        widget.onLocationChange(newPosition);
-        position = newPosition;
-      }
-    }
   }
 }

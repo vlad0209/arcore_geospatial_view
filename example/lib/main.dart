@@ -1,8 +1,8 @@
-import 'package:ar_location_view_example/annotation_view.dart';
-import 'package:ar_location_view_example/annotations.dart';
+import 'package:arcore_geospatial_view/ar_camera_pose.dart';
+import 'package:arcore_geospatial_view_example/annotation_view.dart';
+import 'package:arcore_geospatial_view_example/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:ar_location_view/ar_location_view.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:arcore_geospatial_view/arcore_geospatial_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,16 +22,16 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: ArLocationWidget(
+        body: ArcoreGeospatialWidget(
           annotations: annotations,
-          showDebugInfoSensor: false,
+          showDebugInfo: true,
           annotationViewBuilder: (context, annotation) {
             return AnnotationView(
               key: ValueKey(annotation.uid),
               annotation: annotation as Annotation,
             );
           },
-          onLocationChange: (Position position) {
+          onLocationChange: (ArCameraPose position) {
             Future.delayed(const Duration(seconds: 5), () {
               annotations =
                   fakeAnnotation(position: position, numberMaxPoi: 50);

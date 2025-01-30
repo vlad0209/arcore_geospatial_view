@@ -1,9 +1,10 @@
+import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
 import 'package:flutter/material.dart';
 
-import 'ar_location_view.dart';
+import 'arcore_geospatial_view.dart';
 
-class ArLocationWidget extends StatefulWidget {
-  const ArLocationWidget({
+class ArcoreGeospatialWidget extends StatefulWidget {
+  const ArcoreGeospatialWidget({
     super.key,
     required this.annotations,
     required this.annotationViewBuilder,
@@ -12,11 +13,11 @@ class ArLocationWidget extends StatefulWidget {
     this.annotationHeight = 75,
     this.maxVisibleDistance = 1500,
     this.frame,
-    this.showDebugInfoSensor = true,
     this.paddingOverlap = 5,
     this.yOffsetOverlap,
     this.accessory,
     this.minDistanceReload = 50,
+    this.showDebugInfo = false
   });
 
   ///List of POIs
@@ -40,9 +41,6 @@ class ArLocationWidget extends StatefulWidget {
   ///Callback when location change
   final ChangeLocationCallback onLocationChange;
 
-  ///Show debug info sensor in debug mode
-  final bool showDebugInfoSensor;
-
   ///Padding when marker overlap
   final double paddingOverlap;
 
@@ -55,29 +53,33 @@ class ArLocationWidget extends StatefulWidget {
   ///Min distance reload
   final double minDistanceReload;
 
+  final bool showDebugInfo;
+
   @override
-  State<ArLocationWidget> createState() => _ArLocationWidgetState();
+  State<ArcoreGeospatialWidget> createState() => _ArcoreGeospatialWidgetState();
 }
 
-class _ArLocationWidgetState extends State<ArLocationWidget> {
+class _ArcoreGeospatialWidgetState extends State<ArcoreGeospatialWidget> {
   bool initCam = false;
+  ArCoreController? _arCoreController;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ArCamera(
-          onCameraError: (String error) {
-            initCam = false;
-            setState(() {});
-          },
-          onCameraSuccess: () {
+        ArCoreView(
+          enableUpdateListener: true,
+          enableGeospatialMode: true,
+          enablePlaneRenderer: false,
+          onArCoreViewCreated:(controller) {
+          setState(() {
             initCam = true;
-            setState(() {});
-          },
-        ),
+            _arCoreController = controller;
+          });
+        },),
         if (initCam)
-          ArView(
+          ArAnnotationsStack(
+            showDebugInfo: widget.showDebugInfo,
             annotations: widget.annotations,
             annotationViewBuilder: widget.annotationViewBuilder,
             frame: widget.frame ??
@@ -89,10 +91,10 @@ class _ArLocationWidgetState extends State<ArLocationWidget> {
             annotationWidth: widget.annotationWidth,
             annotationHeight: widget.annotationHeight,
             maxVisibleDistance: widget.maxVisibleDistance,
-            showDebugInfoSensor: widget.showDebugInfoSensor,
             paddingOverlap: widget.paddingOverlap,
             yOffsetOverlap: widget.yOffsetOverlap,
             minDistanceReload: widget.minDistanceReload,
+            arCoreController: _arCoreController,
           ),
         if (widget.accessory != null) widget.accessory!
       ],

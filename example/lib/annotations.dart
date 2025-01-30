@@ -1,6 +1,7 @@
 import 'dart:math';
 
-import 'package:ar_location_view/ar_annotation.dart';
+import 'package:arcore_geospatial_view/ar_annotation.dart';
+import 'package:arcore_geospatial_view/ar_camera_pose.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,7 +20,7 @@ AnnotationType getRandomAnnotation() {
 }
 
 List<Annotation> fakeAnnotation({
-  required Position position,
+  required ArCameraPose position,
   int distance = 1500,
   int numberMaxPoi = 100,
 }) {

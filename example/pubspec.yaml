@@ -1,5 +1,5 @@
-name: ar_location_view_example
-description: Demonstrates how to use the ar_location_view plugin.
+name: arcore_geospatial_view_example
+description: Demonstrates how to use the arcore_geospatial_view plugin.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -18,7 +18,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  ar_location_view:
+  arcore_geospatial_view:
     # When depending on this package from a real application you should use:
     #   ar_location_view: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints
