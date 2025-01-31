@@ -8,18 +8,25 @@ class EulerAngles {
 
   EulerAngles({required this.roll, required this.pitch, required this.yaw});
 
-  factory EulerAngles.fromQuaternion(Quaternion q1) {
+  factory EulerAngles.fromQuaternion(Quaternion q) {
     late final double yaw;
     late final double pitch;
     late final double roll;
 
-    final sqx = q1.x * q1.x;
-    final sqy = q1.y * q1.y;
-    final sqz = q1.z * q1.z;
+    // roll (x-axis rotation)
+    final double sinrCosp = 2 * (q.w * q.x + q.y * q.z);
+    final double cosrCosp = 1 - 2 * (q.x * q.x + q.y * q.y);
+    roll = atan2(sinrCosp, cosrCosp);
 
-    yaw = -atan2(2 * q1.y * q1.w - 2 * q1.x * q1.z, 1 - 2 * sqy - 2 * sqz);
-    pitch = atan2(2 * q1.x * q1.w - 2 * q1.y * q1.z, 1 - 2 * sqx - 2 * sqz);
-    roll = -asin(2 * q1.x * q1.y + q1.z * q1.w);
+    // pitch (y-axis rotation)
+    final double sinp = sqrt(1 + 2 * (q.w * q.y - q.x * q.z));
+    final double cosp = sqrt(1 - 2 * (q.w * q.y - q.x * q.z));
+    pitch = 2 * atan2(sinp, cosp) - pi / 2;
+
+    // yaw (z-axis rotation)
+    final double sinyCosp = 2 * (q.w * q.z + q.x * q.y);
+    final double cosyCosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+    yaw = atan2(sinyCosp, cosyCosp);
 
     return EulerAngles(roll: roll, pitch: pitch, yaw: yaw);
   }

@@ -38,11 +38,15 @@ class ArCameraPose {
   }
 
   factory ArCameraPose.fromArcoreGeospatialPose(arcoreGeospatialPose) {
-    final quaternion = Quaternion(
-        arcoreGeospatialPose.eastUpSouthQuaternion[0],
-        arcoreGeospatialPose.eastUpSouthQuaternion[1],
-        arcoreGeospatialPose.eastUpSouthQuaternion[2],
-        arcoreGeospatialPose.eastUpSouthQuaternion[3]);
+    final x = arcoreGeospatialPose.eastUpSouthQuaternion[0];
+    final y = arcoreGeospatialPose.eastUpSouthQuaternion[1];
+    final z = arcoreGeospatialPose.eastUpSouthQuaternion[2];
+    final w = arcoreGeospatialPose.eastUpSouthQuaternion[3];
+
+    final newX = -z;
+    final newY = x;
+    final newZ = -y;
+    final quaternion = Quaternion(newX, newY, newZ, w);
 
     final angles = EulerAngles.fromQuaternion(quaternion);
     final heading = angles.yaw.toDegrees;
