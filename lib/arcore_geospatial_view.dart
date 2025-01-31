@@ -1,4 +1,4 @@
-library ar_location_view;
+library arcore_geospatial_view;
 
 export 'ar_annotation.dart';
 export 'ar_extension.dart';
