@@ -16,7 +16,6 @@ dependencies:
   arcore_flutter_plugin:
     git: https://github.com/vlad0209/arcore_flutter_plugin.git
   native_device_orientation: ^2.0.3
-  sizer: ^3.0.5
 
 dev_dependencies:
   flutter_test:
