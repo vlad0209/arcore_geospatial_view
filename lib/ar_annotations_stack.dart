@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
+import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:arcore_geospatial_view/ar_camera_pose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class ArAnnotationsStack extends StatefulWidget {
     this.paddingOverlap = 5,
     this.yOffsetOverlap,
     required this.minDistanceReload,
-    required this.arCoreController,
+    required this.arController,
   });
 
   final List<ArAnnotation> annotations;
@@ -48,7 +48,7 @@ class ArAnnotationsStack extends StatefulWidget {
   final double paddingOverlap;
   final double? yOffsetOverlap;
   final double minDistanceReload;
-  final ArCoreController? arCoreController;
+  final ARSessionManager? arController;
 
   @override
   State<ArAnnotationsStack> createState() => _ArAnnotationsStackState();
@@ -73,8 +73,9 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
       _orientation = event;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.arCoreController?.onCameraGeospatialPoseDetected =
+      widget.arController?.onCameraGeospatialPoseDetected =
           (arcoreGeospatialPose) {
+        print('CameraGeospatialPoseDetected');
         final newArCameraPose =
             ArCameraPose.fromArcoreGeospatialPose(arcoreGeospatialPose);
 
@@ -107,7 +108,7 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
   @override
   void dispose() {
     _orientationStreamSubscription?.cancel();
-    widget.arCoreController?.dispose();
+    widget.arController?.dispose();
     super.dispose();
   }
 

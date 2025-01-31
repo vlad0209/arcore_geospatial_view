@@ -1,4 +1,5 @@
-import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
+import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
+import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:flutter/material.dart';
 
 import 'arcore_geospatial_view.dart';
@@ -17,7 +18,8 @@ class ArcoreGeospatialWidget extends StatefulWidget {
     this.yOffsetOverlap,
     this.accessory,
     this.minDistanceReload = 50,
-    this.showDebugInfo = false
+    this.showDebugInfo = false,
+    this.apiKey
   });
 
   ///List of POIs
@@ -55,26 +57,27 @@ class ArcoreGeospatialWidget extends StatefulWidget {
 
   final bool showDebugInfo;
 
+  //Google Cloud API key required for iOS only
+  final String? apiKey;
+
   @override
   State<ArcoreGeospatialWidget> createState() => _ArcoreGeospatialWidgetState();
 }
 
 class _ArcoreGeospatialWidgetState extends State<ArcoreGeospatialWidget> {
   bool initCam = false;
-  ArCoreController? _arCoreController;
+  ARSessionManager? _arController;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ArCoreView(
-          enableUpdateListener: true,
-          enableGeospatialMode: true,
-          enablePlaneRenderer: false,
-          onArCoreViewCreated:(controller) {
+        ARView(onARViewCreated:(arSessionManager, arObjectManager, arAnchorManager, arLocationManager) {
           setState(() {
             initCam = true;
-            _arCoreController = controller;
+            _arController = arSessionManager;
+            _arController!.onInitialize(showPlanes: false, showAnimatedGuide: false);
+            _arController!.enableGeospatialMode(apiKey: widget.apiKey);
           });
         },),
         if (initCam)
@@ -94,7 +97,7 @@ class _ArcoreGeospatialWidgetState extends State<ArcoreGeospatialWidget> {
             paddingOverlap: widget.paddingOverlap,
             yOffsetOverlap: widget.yOffsetOverlap,
             minDistanceReload: widget.minDistanceReload,
-            arCoreController: _arCoreController,
+            arController: _arController,
           ),
         if (widget.accessory != null) widget.accessory!
       ],
