@@ -1,144 +1,150 @@
-# ar_location_view
+# ARCore Geospatial View
 
-Augmented reality for geolocation.
-Inspired [HDAugmentedReality](https://github.com/DanijelHuis/HDAugmentedReality)
+ARCore Geospatial View is a **Flutter package** that offers tools to render augmented reality (AR) annotations using **geospatial data**. It works with **Google ARCore** to show interactive **points of interest (POIs)** in an AR experience helping users see **real-world locations** with annotations.
 
+## 📌 Features
 
-## Demo
+- **AR Annotations**: Show markers based on location and device orientation.
+- **Geospatial Tracking**: Uses **ARCore's Geospatial API** to find device pose (latitude, longitude, heading, pitch).
+- **Real-time AR Updates**: Changes POIs as the user moves.
+- **Customizable Annotations**: Define how your annotations look with a builder function.
+- **Debug Mode**: Shows real-time geospatial data.
 
-![ArLocationView](./demo.gif)
+## 🛠 Installation
 
+Add this package to your `pubspec.yaml`:
 
-## Description
+```yaml
+dependencies:
+  arcore_geospatial_view:
+    git: https://github.com/vlad0209/arcore_geospatial_view.git
+```
 
-ArLocationView is designed to used in areas with large concentration of static POIs.
-Where primary goal is the visibility of all POIs.
+Then run:
 
-**Remark:** Altitudes of POIs are disregarded
+```sh
+flutter pub get
+```
 
+## 🚀 How to Use
 
-### Features
-* Automatic vertical stacking of annotations views
-* Tracks user movement and updates visible annotations
-* Fully customisable annotation view
-* Supports all rotations
+### 1️⃣ Bring in the Package
 
+```dart
+import 'package:arcore_geospatial_view/arcore_geospatial_view.dart';
+```
 
-### Basic usage
-Look at the example
+### 2️⃣ Create Your Own Annotation Class
 
-### For iOs
-ArLocationView use device camera and location, add in `Info.plist`
+`ArAnnotation` has an abstract structure. You need to extend it to make your own annotation models.
+
+```dart
+class CustomArAnnotation extends ArAnnotation {
+  CustomArAnnotation({required String uid, required Position position})
+      : super(uid: uid, position: position);
+}
+```
+
+### 3️⃣ Set Up the AR Widget
+
+```dart
+ArcoreGeospatialWidget(
+  annotations: [
+    CustomArAnnotation(
+      uid: "poi_1",
+      position: Position(latitude: 37.7749, longitude: -122.4194),
+    ),
+  ],
+  annotationViewBuilder: (context, annotation) {
+    return Container(
+      color: Colors.blue,
+      padding: const EdgeInsets.all(8),
+      child: Text(annotation.uid, style: TextStyle(color: Colors.white)),
+    );
+  },
+  onLocationChange: (newLocation) {
+    print("New location: ${newLocation.latitude}, ${newLocation.longitude}");
+  },
+  showDebugInfo: true,
+);
+```
+
+### 4️⃣ Make ARCore work
+
+Ensure **Google Play Services for AR** is on your device.
+For Android add these lines to `AndroidManifest.xml`:
+
+#### If AR is **optional**:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.CAMERA" />
+<meta-data android:name="com.google.ar.core" android:value="optional" />
+```
+
+#### If AR is **necessary**:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.CAMERA" />
+<meta-data android:name="com.google.ar.core" android:value="required" />
+```
+
+#### Set up Google AR API Key
+
+To add geospatial features insert this into your `AndroidManifest.xml`:
+
+```xml
+<meta-data android:name="com.google.android.ar.API_KEY" android:value="YOUR_API_KEY_HERE" />
+```
+
+Switch out `YOUR_API_KEY_HERE` with your real **Google Cloud API Key**.
+
+#### Turn on ARCore API in Google Cloud
+
+1. Head to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Pick your project or make a new one.
+3. Go to **APIs & Services > Library**.
+4. Look up **ARCore API** and switch it on.
+5. Visit **APIs & Services > Credentials** and set up a new API key.
+
+For iOS, add the following permissions in your `Info.plist`:
+
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
-<key>NSLocationUsageDescription</key>
-<key>NSLocationAlwaysUsageDescription</key>
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>We need your location to show AR annotations accurately.</string>
+
 <key>NSCameraUsageDescription</key>
-```
-### For Android
-Add permission in `manifest.xml`
-```xml
-<uses-permission android:name="android.permission.CAMERA"/>
-<uses-permission android:name="android.permission.RECORD_AUDIO"/>
-<uses-permission android:name="android.permission.INTERNET"/>
-<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-<uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+<string>We need camera access for augmented reality features.</string>
 ```
 
-Create class extend ArAnnotation
+📌 API Reference
 
-```dart
-class Annotation extends ArAnnotation {
-  final AnnotationType type;
-  
-  Annotation({required super.uid, required super.position, required this.type});
-}
-```
+### `ArcoreGeospatialWidget`
 
-Create a widget for Annotation view for example
-```dart
+| Property                | Type                                          | Description                                                   |
+| ----------------------- | --------------------------------------------- | ------------------------------------------------------------- |
+| `annotations`           | `List<ArAnnotation>`                          | List of AR annotations. You need to extend `ArAnnotation`.    |
+| `annotationViewBuilder` | `Widget Function(BuildContext, ArAnnotation)` | Function that creates the annotation UI.                      |
+| `onLocationChange`      | `ChangeLocationCallback`                      | Callback when the user's location changes.                    |
+| `annotationWidth`       | `double`                                      | Width of annotation widgets.                                  |
+| `annotationHeight`      | `double`                                      | Height of annotation widgets.                                 |
+| `showDebugInfo`         | `bool`                                        | Shows debug information for latitude, longitude, and orientation. |
 
-class AnnotationView extends StatelessWidget {
-  const AnnotationView({
-    Key? key,
-    required this.annotation,
-  }) : super(key: key);
+## ⚠️ Limitations
 
-  final Annotation annotation;
+- You need a device that works with ARCore to use this.
+- If you have an iPhone or iPad, your device must support ARKit.
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: Colors.white,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(5),
-                  bottomLeft: Radius.circular(5),
-                ),
-              ),
-              child: typeFactory(annotation.type),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    annotation.type.toString().substring(15),
-                    maxLines: 1,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${annotation.distanceFromUser.toInt()} m',
-                  ),
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
+## 🤝 Contributing
 
-  Widget typeFactory(AnnotationType type) {
-    IconData iconData = Icons.ac_unit_outlined;
-    Color color = Colors.teal;
-    switch (type) {
-      case AnnotationType.pharmacy:
-        iconData = Icons.local_pharmacy_outlined;
-        color = Colors.red;
-        break;
-      case AnnotationType.hotel:
-        iconData = Icons.hotel_outlined;
-        color = Colors.green;
-        break;
-      case AnnotationType.library:
-        iconData = Icons.library_add_outlined;
-        color = Colors.blue;
-        break;
-    }
-    return Icon(
-      iconData,
-      size: 40,
-      color: color,
-    );
-  }
-}
-```
+I'd love your help! Don't hesitate to report issues or send in pull requests.
 
-## License
+## 📄 License
 
-ArLocationView is released under the MIT license.
+You can use this project under the MIT License. Check out the [LICENSE](LICENSE) file to learn more.
+
+---
+
+📌 We made this with love for people who build AR apps with Flutter! 🚀
+
