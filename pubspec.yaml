@@ -14,7 +14,9 @@ dependencies:
   vector_math: ^2.1.4
   geolocator: ^13.0.2
   ar_flutter_plugin:
-    git: https://github.com/vlad0209/ar_flutter_plugin.git
+    git: 
+      url: https://github.com/vlad0209/ar_flutter_plugin.git
+      ref: be602fb46fda463857e3c821746150755720ef56
   native_device_orientation: ^2.0.3
 
 dev_dependencies:
