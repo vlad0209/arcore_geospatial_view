@@ -28,48 +28,15 @@ flutter pub get
 
 ## 🚀 How to Use
 
-### 1️⃣ Bring in the Package
+### 1️⃣ Make ARCore work
 
-```dart
-import 'package:arcore_geospatial_view/arcore_geospatial_view.dart';
-```
+#### Turn on ARCore API in Google Cloud
 
-### 2️⃣ Create Your Own Annotation Class
-
-`ArAnnotation` has an abstract structure. You need to extend it to make your own annotation models.
-
-```dart
-class CustomArAnnotation extends ArAnnotation {
-  CustomArAnnotation({required String uid, required Position position})
-      : super(uid: uid, position: position);
-}
-```
-
-### 3️⃣ Set Up the AR Widget
-
-```dart
-ArcoreGeospatialWidget(
-  annotations: [
-    CustomArAnnotation(
-      uid: "poi_1",
-      position: Position(latitude: 37.7749, longitude: -122.4194),
-    ),
-  ],
-  annotationViewBuilder: (context, annotation) {
-    return Container(
-      color: Colors.blue,
-      padding: const EdgeInsets.all(8),
-      child: Text(annotation.uid, style: TextStyle(color: Colors.white)),
-    );
-  },
-  onLocationChange: (newLocation) {
-    print("New location: ${newLocation.latitude}, ${newLocation.longitude}");
-  },
-  showDebugInfo: true,
-);
-```
-
-### 4️⃣ Make ARCore work
+1. Head to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Pick your project or make a new one.
+3. Go to **APIs & Services > Library**.
+4. Look up **ARCore API** and switch it on.
+5. Visit **APIs & Services > Credentials** and set up a new API key.
 
 Ensure **Google Play Services for AR** is on your device.
 For Android add these lines to `AndroidManifest.xml`:
@@ -100,14 +67,6 @@ To add geospatial features insert this into your `AndroidManifest.xml`:
 
 Switch out `YOUR_API_KEY_HERE` with your real **Google Cloud API Key**.
 
-#### Turn on ARCore API in Google Cloud
-
-1. Head to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Pick your project or make a new one.
-3. Go to **APIs & Services > Library**.
-4. Look up **ARCore API** and switch it on.
-5. Visit **APIs & Services > Credentials** and set up a new API key.
-
 For iOS, add the following permissions in your `Info.plist`:
 
 ```xml
@@ -116,6 +75,47 @@ For iOS, add the following permissions in your `Info.plist`:
 
 <key>NSCameraUsageDescription</key>
 <string>We need camera access for augmented reality features.</string>
+```
+
+### 2️⃣ Bring in the Package
+
+```dart
+import 'package:arcore_geospatial_view/arcore_geospatial_view.dart';
+```
+
+### 3️⃣ Create Your Own Annotation Class
+
+`ArAnnotation` has an abstract structure. You need to extend it to make your own annotation models.
+
+```dart
+class CustomArAnnotation extends ArAnnotation {
+  CustomArAnnotation({required String uid, required Position position})
+      : super(uid: uid, position: position);
+}
+```
+
+### 4️⃣ Set Up the AR Widget
+
+```dart
+ArcoreGeospatialWidget(
+  annotations: [
+    CustomArAnnotation(
+      uid: "poi_1",
+      position: Position(latitude: 37.7749, longitude: -122.4194),
+    ),
+  ],
+  annotationViewBuilder: (context, annotation) {
+    return Container(
+      color: Colors.blue,
+      padding: const EdgeInsets.all(8),
+      child: Text(annotation.uid, style: TextStyle(color: Colors.white)),
+    );
+  },
+  onLocationChange: (newLocation) {
+    print("New location: ${newLocation.latitude}, ${newLocation.longitude}");
+  },
+  showDebugInfo: true,
+);
 ```
 
 📌 API Reference
