@@ -117,6 +117,17 @@ ArcoreGeospatialWidget(
   showDebugInfo: true,
 );
 ```
+## Prepaire the app to release
+
+When building a minified app, the Geospatial API requires the GMS location modules to be unminified. Keep the GMS authentication libraries as-is when using Keyless Authentication. Add the following lines to the android/app/proguard-rules.pro file:
+
+```
+-keep class com.google.android.gms.location.** { *; }
+-keep class com.google.android.gms.auth.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+```
+
 
 📌 API Reference
 
