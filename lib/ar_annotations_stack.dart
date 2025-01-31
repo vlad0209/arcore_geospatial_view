@@ -107,6 +107,7 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
   @override
   void dispose() {
     _orientationStreamSubscription?.cancel();
+    widget.arCoreController?.dispose();
     super.dispose();
   }
 
