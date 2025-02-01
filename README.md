@@ -115,6 +115,7 @@ ArcoreGeospatialWidget(
     print("New location: ${newLocation.latitude}, ${newLocation.longitude}");
   },
   showDebugInfo: true,
+  apiKey: "YOUR_API_KEY_HERE" // API key here is required for iOS only, for Android you just put it in the AndroidManifest.xml as shown above
 );
 ```
 ## Prepaire the app to release
@@ -157,5 +158,5 @@ You can use this project under the MIT License. Check out the [LICENSE](LICENSE)
 
 ---
 
-📌 We made this with love for people who build AR apps with Flutter! 🚀
+📌 I made this with love for people who build AR apps with Flutter! 🚀
 
