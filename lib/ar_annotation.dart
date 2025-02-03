@@ -6,6 +6,7 @@ abstract class ArAnnotation {
     required this.uid,
     required this.position,
     this.azimuth = 0,
+    this.elevationAngle = 0,
     this.distanceFromUser = 0,
     this.isVisible = false,
     this.arPosition = const Offset(0, 0),
@@ -15,6 +16,7 @@ abstract class ArAnnotation {
   String uid;
   Position position;
   double azimuth;
+  double elevationAngle;
   double distanceFromUser;
   bool isVisible;
   Offset arPosition;
@@ -22,6 +24,6 @@ abstract class ArAnnotation {
 
   @override
   String toString() {
-    return 'Annotation{position: $position, azimuth: $azimuth, distanceFromUser: $distanceFromUser, isVisible: $isVisible, arPosition: $arPosition}';
+    return 'Annotation{position: $position, azimuth: $azimuth, elevationAngle: $elevationAngle, distanceFromUser: $distanceFromUser, isVisible: $isVisible, arPosition: $arPosition}';
   }
 }

@@ -4,7 +4,6 @@ import 'package:arcore_geospatial_view/ar_extension.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ArMath {
-
   static double deltaAngle(double angle1, double angle2) {
     var deltaAngle = angle1 - angle2;
     if (deltaAngle > 180) {
@@ -33,5 +32,12 @@ class ArMath {
     }
 
     return bearing;
+  }
+
+  static double elevationAngle(
+      double altitude, double altitude2, double distance) {
+    final double heightDifference = altitude2 - altitude;
+    final double elevationAngle = atan2(heightDifference, distance);
+    return elevationAngle.toDegrees;
   }
 }

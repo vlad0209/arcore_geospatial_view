@@ -5,7 +5,7 @@ ARCore Geospatial View is a **Flutter package** that offers tools to render augm
 ## 📌 Features
 
 - **AR Annotations**: Show markers based on location and device orientation.
-- **Geospatial Tracking**: Uses **ARCore's Geospatial API** to find device pose (latitude, longitude, heading, pitch).
+- **Geospatial Tracking**: Uses **ARCore's Geospatial API** to find device pose (latitude, longitude, altitude, heading, pitch).
 - **Real-time AR Updates**: Changes POIs as the user moves.
 - **Customizable Annotations**: Define how your annotations look with a builder function.
 - **Debug Mode**: Shows real-time geospatial data.
@@ -38,8 +38,9 @@ flutter pub get
 4. Look up **ARCore API** and switch it on.
 5. Visit **APIs & Services > Credentials** and set up a new API key.
 
-Ensure **Google Play Services for AR** is on your device.
-For Android add these lines to `AndroidManifest.xml`:
+#### Android Setup
+
+Ensure **Google Play Services for AR** is on your device. For Android add these lines to `AndroidManifest.xml`:
 
 #### If AR is **optional**:
 
@@ -66,6 +67,29 @@ To add geospatial features insert this into your `AndroidManifest.xml`:
 ```
 
 Switch out `YOUR_API_KEY_HERE` with your real **Google Cloud API Key**.
+
+#### iOS Setup
+
+This package uses the **permission_handler** plugin to check and ask for camera access. On **iOS**, you need to change your **Podfile** to allow permissions.
+
+Go to the **iOS folder** in your Flutter project and open the **Podfile** (`ios/Podfile`). Find the `post_install` function and put these lines in it:
+
+```
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    # Enable required permissions
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_CAMERA=1',  # Enable camera permission
+        'PERMISSION_LOCATION_WHEN_IN_USE=1'  # Enable location permission
+      ]
+    end
+  end
+end
+```
 
 For iOS, add the following permissions in your `Info.plist`:
 
@@ -115,7 +139,7 @@ ArcoreGeospatialWidget(
     print("New location: ${newLocation.latitude}, ${newLocation.longitude}");
   },
   showDebugInfo: true,
-  apiKey: "YOUR_API_KEY_HERE" // API key here is required for iOS only, for Android you just put it in the AndroidManifest.xml as shown above
+  iosApiKey: "YOUR_API_KEY_HERE" // API key here is required for iOS only, for Android you just put it in the AndroidManifest.xml as shown above
 );
 ```
 ## Prepaire the app to release

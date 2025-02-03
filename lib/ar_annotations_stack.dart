@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
-import 'package:arcore_geospatial_view/ar_camera_pose.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -75,7 +74,6 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.arController?.onCameraGeospatialPoseDetected =
           (arcoreGeospatialPose) {
-        print('CameraGeospatialPoseDetected');
         final newArCameraPose =
             ArCameraPose.fromArcoreGeospatialPose(arcoreGeospatialPose);
 
@@ -108,7 +106,6 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
   @override
   void dispose() {
     _orientationStreamSubscription?.cancel();
-    widget.arController?.dispose();
     super.dispose();
   }
 
@@ -167,7 +164,8 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
             Text('heading           : ${arCameraPose?.heading}'),
             Text('pitch             : ${arCameraPose?.pitch}'),
             Text('roll              : ${arCameraPose?.roll}'),
-            Text('Device orientation: $_orientation')
+            Text('Device orientation: $_orientation'),
+            Text('Altitude           : ${arCameraPose?.altitude}'),
           ],
         ),
       ),
@@ -221,12 +219,16 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
         annotationLocation.latitude,
         annotationLocation.longitude,
       );
+
       e.distanceFromUser = Geolocator.distanceBetween(
           arCameraPose.latitude,
           arCameraPose.longitude,
           annotationLocation.latitude,
           annotationLocation.longitude);
-      final dy = arCameraPose.pitch * arStatus.vPixelPerDegree;
+      e.elevationAngle = ArMath.elevationAngle(arCameraPose.altitude,
+          annotationLocation.altitude, e.distanceFromUser);
+
+      final dy = arCameraPose.pitch * arStatus.vPixelPerDegree - e.elevationAngle * arStatus.vPixelPerDegree;
       final dx = ArMath.deltaAngle(e.azimuth, arCameraPose.heading) *
           arStatus.hPixelPerDegree;
       e.arPosition = Offset(dx, dy);
@@ -250,33 +252,5 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
     annotations.sort((a, b) => (a.distanceFromUser < b.distanceFromUser)
         ? -1
         : ((a.distanceFromUser > b.distanceFromUser) ? 1 : 0));
-
-    for (final ArAnnotation annotation in annotations) {
-      var i = 0;
-      while (i < annotations.length) {
-        final annotation2 = annotations[i];
-        if (annotation.uid == annotation2.uid) {
-          break;
-        }
-        final collision =
-            intersects(annotation, annotation2, widget.annotationWidth);
-        if (collision) {
-          annotation.arPositionOffset = Offset(
-              0,
-              annotation2.arPositionOffset.dy -
-                  ((widget.yOffsetOverlap ?? widget.annotationHeight) +
-                      widget.paddingOverlap));
-        }
-        i++;
-      }
-    }
-  }
-
-  bool intersects(
-      ArAnnotation annotation1, ArAnnotation annotation2, double width) {
-    return (annotation2.arPosition.dx >= annotation1.arPosition.dx &&
-            annotation2.arPosition.dx <= (annotation1.arPosition.dx + width)) ||
-        (annotation1.arPosition.dx >= annotation2.arPosition.dx &&
-            annotation1.arPosition.dx <= (annotation2.arPosition.dx + width));
   }
 }

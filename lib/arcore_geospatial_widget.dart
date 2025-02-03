@@ -19,7 +19,7 @@ class ArcoreGeospatialWidget extends StatefulWidget {
     this.accessory,
     this.minDistanceReload = 50,
     this.showDebugInfo = false,
-    this.apiKey
+    this.iosApiKey
   });
 
   ///List of POIs
@@ -58,7 +58,7 @@ class ArcoreGeospatialWidget extends StatefulWidget {
   final bool showDebugInfo;
 
   //Google Cloud API key required for iOS only
-  final String? apiKey;
+  final String? iosApiKey;
 
   @override
   State<ArcoreGeospatialWidget> createState() => _ArcoreGeospatialWidgetState();
@@ -69,6 +69,12 @@ class _ArcoreGeospatialWidgetState extends State<ArcoreGeospatialWidget> {
   ARSessionManager? _arController;
 
   @override
+  void dispose() {
+    _arController?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -77,7 +83,7 @@ class _ArcoreGeospatialWidgetState extends State<ArcoreGeospatialWidget> {
             initCam = true;
             _arController = arSessionManager;
             _arController!.onInitialize(showPlanes: false, showAnimatedGuide: false);
-            _arController!.enableGeospatialMode(apiKey: widget.apiKey);
+            _arController!.enableGeospatialMode(iosApiKey: widget.iosApiKey);
           });
         },),
         if (initCam)
