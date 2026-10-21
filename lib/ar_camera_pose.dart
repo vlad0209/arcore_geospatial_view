@@ -1,4 +1,4 @@
-import 'package:ar_flutter_plugin/models/ar_geospatial_pose.dart';
+import 'package:ar_flutter_plugin_plus/models/ar_geospatial_pose.dart';
 import 'package:arcore_geospatial_view/arcore_geospatial_view.dart';
 import 'package:arcore_geospatial_view/euler_angles.dart';
 import 'package:vector_math/vector_math_64.dart';
@@ -42,7 +42,8 @@ class ArCameraPose {
     return 'ArCameraPose(latitude: $latitude, longitude: $longitude, altitude: $altitude, heading: $heading, pitch: $pitch)';
   }
 
-  factory ArCameraPose.fromArcoreGeospatialPose(ARGeospatialPose arcoreGeospatialPose) {
+  factory ArCameraPose.fromArcoreGeospatialPose(
+      ARGeospatialPose arcoreGeospatialPose) {
     final x = arcoreGeospatialPose.eastUpSouthQuaternion?[0] ?? 0;
     final y = arcoreGeospatialPose.eastUpSouthQuaternion?[1] ?? 0;
     final z = arcoreGeospatialPose.eastUpSouthQuaternion?[2] ?? 0;

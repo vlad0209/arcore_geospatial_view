@@ -1,26 +1,25 @@
-import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
-import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
+import 'package:ar_flutter_plugin_plus/managers/ar_session_manager.dart';
+import 'package:ar_flutter_plugin_plus/widgets/ar_view.dart';
 import 'package:flutter/material.dart';
 
 import 'arcore_geospatial_view.dart';
 
 class ArcoreGeospatialWidget extends StatefulWidget {
-  const ArcoreGeospatialWidget({
-    super.key,
-    required this.annotations,
-    required this.annotationViewBuilder,
-    required this.onLocationChange,
-    this.annotationWidth = 200,
-    this.annotationHeight = 75,
-    this.maxVisibleDistance = 1500,
-    this.frame,
-    this.paddingOverlap = 5,
-    this.yOffsetOverlap,
-    this.accessory,
-    this.minDistanceReload = 50,
-    this.showDebugInfo = false,
-    this.iosApiKey
-  });
+  const ArcoreGeospatialWidget(
+      {super.key,
+      required this.annotations,
+      required this.annotationViewBuilder,
+      required this.onLocationChange,
+      this.annotationWidth = 200,
+      this.annotationHeight = 75,
+      this.maxVisibleDistance = 1500,
+      this.frame,
+      this.paddingOverlap = 5,
+      this.yOffsetOverlap,
+      this.accessory,
+      this.minDistanceReload = 50,
+      this.showDebugInfo = false,
+      this.iosApiKey});
 
   ///List of POIs
   final List<ArAnnotation> annotations;
@@ -78,14 +77,18 @@ class _ArcoreGeospatialWidgetState extends State<ArcoreGeospatialWidget> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ARView(onARViewCreated:(arSessionManager, arObjectManager, arAnchorManager, arLocationManager) {
-          setState(() {
-            initCam = true;
-            _arController = arSessionManager;
-            _arController!.onInitialize(showPlanes: false, showAnimatedGuide: false);
-            _arController!.enableGeospatialMode(iosApiKey: widget.iosApiKey);
-          });
-        },),
+        ARView(
+          onARViewCreated: (arSessionManager, arObjectManager, arAnchorManager,
+              arLocationManager) {
+            setState(() {
+              initCam = true;
+              _arController = arSessionManager;
+              _arController!
+                  .onInitialize(showPlanes: false, showAnimatedGuide: false);
+              _arController!.enableGeospatialMode(iosApiKey: widget.iosApiKey);
+            });
+          },
+        ),
         if (initCam)
           ArAnnotationsStack(
             showDebugInfo: widget.showDebugInfo,
