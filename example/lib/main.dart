@@ -1,6 +1,6 @@
 import 'package:arcore_geospatial_view/ar_camera_pose.dart';
-import 'package:arcore_geospatial_view_example/annotation_view.dart';
-import 'package:arcore_geospatial_view_example/annotations.dart';
+import 'annotation_view.dart';
+import 'annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:arcore_geospatial_view/arcore_geospatial_widget.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
+import 'package:ar_flutter_plugin_plus/managers/ar_session_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -228,7 +228,8 @@ class _ArAnnotationsStackState extends State<ArAnnotationsStack> {
       e.elevationAngle = ArMath.elevationAngle(arCameraPose.altitude,
           annotationLocation.altitude, e.distanceFromUser);
 
-      final dy = arCameraPose.pitch * arStatus.vPixelPerDegree - e.elevationAngle * arStatus.vPixelPerDegree;
+      final dy = arCameraPose.pitch * arStatus.vPixelPerDegree -
+          e.elevationAngle * arStatus.vPixelPerDegree;
       final dx = ArMath.deltaAngle(e.azimuth, arCameraPose.heading) *
           arStatus.hPixelPerDegree;
       e.arPosition = Offset(dx, dy);
